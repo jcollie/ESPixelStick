@@ -330,6 +330,27 @@ void connectToMqtt() {
     mqtt.connect();
 }
 
+void publishState() {
+    StaticJsonBuffer<JSON_BUFFER_SIZE> jsonBuffer;
+    JsonObject& root = jsonBuffer.createObject();
+    root["state"] = (config.ds == DataSource::MQTT) ? LIGHT_ON : LIGHT_OFF;
+    JsonObject& color = root.createNestedObject("color");
+    color["r"] = effects.getColor().r;
+    color["g"] = effects.getColor().g;
+    color["b"] = effects.getColor().b;
+    root["brightness"] = effects.getBrightness();
+    if (effects.getEffect() != nullptr) {
+        root["effect"] = effects.getEffect();
+    }
+    root["reverse"] = effects.getReverse();
+    root["mirror"] = effects.getMirror();
+    root["allleds"] = effects.getAllLeds();
+
+    char buffer[root.measureLength() + 1];
+    root.printTo(buffer, sizeof(buffer));
+    mqtt.publish(config.mqtt_topic.c_str(), 0, true, buffer);
+}
+
 void onMqttConnect(bool sessionPresent) {
     LOG_PORT.println(F("- MQTT Connected"));
 
@@ -410,26 +431,6 @@ void onMqttMessage(char* topic, char* payload,
     publishState();
 }
 
-void publishState() {
-    StaticJsonBuffer<JSON_BUFFER_SIZE> jsonBuffer;
-    JsonObject& root = jsonBuffer.createObject();
-    root["state"] = (config.ds == DataSource::MQTT) ? LIGHT_ON : LIGHT_OFF;
-    JsonObject& color = root.createNestedObject("color");
-    color["r"] = effects.getColor().r;
-    color["g"] = effects.getColor().g;
-    color["b"] = effects.getColor().b;
-    root["brightness"] = effects.getBrightness();
-    if (effects.getEffect() != nullptr) {
-        root["effect"] = effects.getEffect();
-    }
-    root["reverse"] = effects.getReverse();
-    root["mirror"] = effects.getMirror();
-    root["allleds"] = effects.getAllLeds();
-
-    char buffer[root.measureLength() + 1];
-    root.printTo(buffer, sizeof(buffer));
-    mqtt.publish(config.mqtt_topic.c_str(), 0, true, buffer);
-}
 
 /////////////////////////////////////////////////////////
 //
@@ -913,4 +914,3 @@ void loop() {
         while (LOG_PORT.read() >= 0);
     }
 }
-

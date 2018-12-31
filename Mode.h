@@ -21,7 +21,7 @@
 #define MODE_H_
 
 /* Output Mode - There can be only one! (-Conor MacLeod) */
-#define ESPS_MODE_PIXEL
+//#define ESPS_MODE_PIXEL
 //#define ESPS_MODE_SERIAL
 
 #endif  // MODE_H_
